@@ -43,3 +43,8 @@ def delete_user(user_id: int, session: Session = Depends(get_session)):
     session.delete(user)
     session.commit()
     return {"status": "deleted"}
+
+@router.get("/")
+def get_users(session: Session = Depends(get_session)):
+    users = session.query(User).all()
+    return users
