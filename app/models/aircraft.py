@@ -1,5 +1,5 @@
 from typing import Optional
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 
 class Aircraft(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -7,3 +7,5 @@ class Aircraft(SQLModel, table=True):
     model: str
     serial_number: str
     max_velocity: float
+    
+    flights: list["Flight"] = Relationship(back_populates="aircraft")
