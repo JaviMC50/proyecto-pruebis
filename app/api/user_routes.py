@@ -9,21 +9,21 @@ router = APIRouter(
     tags=["Users"]
 )
 
-@router.post("/users", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def create_user(user: User, session: Session = Depends(get_session)):
     session.add(user)
     session.commit()
     session.refresh(user)
     return user
 
-@router.get("/users/{user_id}")
+@router.get("/{user_id}")
 def get_user(user_id: int, session: Session = Depends(get_session)):
     user = session.get(User, user_id)
     if not user:
         return {"error": "User not found"}
     return user
 
-@router.put("/users/{user_id}")
+@router.put("/{user_id}")
 def update_user(user_id: int, updated: User, session: Session = Depends(get_session)):
     user = session.get(User, user_id)
     if not user:
@@ -35,7 +35,7 @@ def update_user(user_id: int, updated: User, session: Session = Depends(get_sess
     session.refresh(user)
     return user
 
-@router.delete("/users/{user_id}")
+@router.delete("/{user_id}")
 def delete_user(user_id: int, session: Session = Depends(get_session)):
     user = session.get(User, user_id)
     if not user:
