@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
+from fastapi import status
 from app.core.database import get_session
 from app.models.user import User
 
@@ -8,7 +9,7 @@ router = APIRouter(
     tags=["Users"]
 )
 
-@router.post("/users")
+@router.post("/users", status_code=status.HTTP_201_CREATED)
 def create_user(user: User, session: Session = Depends(get_session)):
     session.add(user)
     session.commit()
