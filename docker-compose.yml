@@ -18,12 +18,22 @@ services:
       - app-network
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/code
+    working_dir: /code
+    ports:
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
     networks:
       - app-network
 
