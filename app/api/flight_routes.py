@@ -2,49 +2,31 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 from app.core.database import get_session
 from app.models.flight import Flight
+from app.repositories.flight_repository import FlightRepository
+from app.services.flight_service import FlightService
 
 router = APIRouter()
 
+def get_flight_service(session: Session = Depends(get_session)) -> FlightService:
+    repository = FlightRepository(session)
+    return FlightService(repository)
+
 @router.post("/flights")
-def create_flight(flight: Flight, session: Session = Depends(get_session)):
-    session.add(flight)
-    session.commit()
-    session.refresh(flight)
-    return flight
+def create_flight(flight: Flight, service: FlightService = Depends(get_flight_service)):
+    return service.create_flight(flight)
 
 @router.get("/flights")
-def list_flights(session: Session = Depends(get_session)):
-    items = session.query(Flight).all()
-    return items
+def list_flights(service: FlightService = Depends(get_flight_service)):
+    return service.get_flights()
 
 @router.get("/flights/{item_id}")
-def get_flight(item_id: int, session: Session = Depends(get_session)):
-    item = session.get(Flight, item_id)
-    if not item:
-        return {"error": "Flight not found"}
-    return item
+def get_flight(item_id: int, service: FlightService = Depends(get_flight_service)):
+    return service.get_flight(item_id)
 
 @router.put("/flights/{item_id}")
-def update_flight(item_id: int, updated: Flight, session: Session = Depends(get_session)):
-    item = session.get(Flight, item_id)
-    if not item:
-        return {"error": "Flight not found"}
-    item.name = updated.name
-    item.pilot = updated.pilot
-    item.aircraft = updated.aircraft
-    item.telemetry = updated.telemetry
-    item.start_date = updated.start_date
-    item.end_date = updated.end_date
-    session.add(item)
-    session.commit()
-    session.refresh(item)
-    return item
+def update_flight(item_id: int, updated: Flight, service: FlightService = Depends(get_flight_service)):
+    return service.update_flight(item_id, updated)
 
 @router.delete("/flights/{item_id}")
-def delete_flight(item_id: int, session: Session = Depends(get_session)):
-    item = session.get(Flight, item_id)
-    if not item:
-        return {"error": "Flight not found"}
-    session.delete(item)
-    session.commit()
-    return {"status": "deleted"}
+def delete_flight(item_id: int, service: FlightService = Depends(get_flight_service)):
+    return service.delete_flight(item_id)

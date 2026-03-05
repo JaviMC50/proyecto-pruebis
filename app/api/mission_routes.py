@@ -2,47 +2,31 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 from app.core.database import get_session
 from app.models.mission import Mission
+from app.repositories.mission_repository import MissionRepository
+from app.services.mission_service import MissionService
 
 router = APIRouter()
 
+def get_mission_service(session: Session = Depends(get_session)) -> MissionService:
+    repository = MissionRepository(session)
+    return MissionService(repository)
+
 @router.post("/missions")
-def create_mission(mission: Mission, session: Session = Depends(get_session)):
-    session.add(mission)
-    session.commit()
-    session.refresh(mission)
-    return mission
+def create_mission(mission: Mission, service: MissionService = Depends(get_mission_service)):
+    return service.create_mission(mission)
 
 @router.get("/missions")
-def list_missions(session: Session = Depends(get_session)):
-    items = session.query(Mission).all()
-    return items
+def list_missions(service: MissionService = Depends(get_mission_service)):
+    return service.get_missions()
 
 @router.get("/missions/{item_id}")
-def get_mission(item_id: int, session: Session = Depends(get_session)):
-    item = session.get(Mission, item_id)
-    if not item:
-        return {"error": "Mission not found"}
-    return item
+def get_mission(item_id: int, service: MissionService = Depends(get_mission_service)):
+    return service.get_mission(item_id)
 
 @router.put("/missions/{item_id}")
-def update_mission(item_id: int, updated: Mission, session: Session = Depends(get_session)):
-    item = session.get(Mission, item_id)
-    if not item:
-        return {"error": "Mission not found"}
-    item.name = updated.name
-    item.description = updated.description
-    item.start_date = updated.start_date
-    item.end_date = updated.end_date
-    session.add(item)
-    session.commit()
-    session.refresh(item)
-    return item
+def update_mission(item_id: int, updated: Mission, service: MissionService = Depends(get_mission_service)):
+    return service.update_mission(item_id, updated)
 
 @router.delete("/missions/{item_id}")
-def delete_mission(item_id: int, session: Session = Depends(get_session)):
-    item = session.get(Mission, item_id)
-    if not item:
-        return {"error": "Mission not found"}
-    session.delete(item)
-    session.commit()
-    return {"status": "deleted"}
+def delete_mission(item_id: int, service: MissionService = Depends(get_mission_service)):
+    return service.delete_mission(item_id)
